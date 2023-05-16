@@ -1,0 +1,123 @@
+// C++ code
+//
+// Definir pinos do Arduino
+const int ledVermelho = 2;
+const int ledAmarelo = 3;
+const int ledVerde = 4;
+const int buzzer = 5;
+const int trigPin = 7;
+const int echoPin = 6;
+const int motorEsquerdoPin1 = 9;
+const int motorEsquerdoPin2 = 10;
+const int motorDireitoPin1 = 11;
+const int motorDireitoPin2 = 12;
+
+// Definir variáveis para calcular a velocidade do motor
+const float theta = 90.0;
+const float theta0 = 15.0;
+const float tempoTrajeto = 1.0;
+const float b = 0.2;
+
+void setup() {
+  // Inicializar pinos
+  pinMode(ledVermelho, OUTPUT);
+  pinMode(ledAmarelo, OUTPUT);
+  pinMode(ledVerde, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(motorEsquerdoPin1, OUTPUT);
+  pinMode(motorEsquerdoPin2, OUTPUT);
+  pinMode(motorDireitoPin1, OUTPUT);
+  pinMode(motorDireitoPin2, OUTPUT);
+
+  // Inicializar comunicação
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Ler distância do sensor ultrassónico
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  float duracao = pulseIn(echoPin, HIGH);
+  float distancia = (duracao / 2) * 0.0344;
+  Serial.print("Distância: ");
+  Serial.print(distancia);
+  Serial.println(" cm");
+
+  // Avisos sonoros e visuais conforme distância ao objeto
+  if (distancia > 100) {
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledAmarelo, LOW);
+    digitalWrite(ledVermelho, LOW);
+    noTone(buzzer);
+  } else if (distancia > 50) {
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledAmarelo, HIGH);
+    digitalWrite(ledVermelho, LOW);
+    tone(buzzer, 1000, 200);
+  } else if (distancia > 25) {
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledAmarelo, HIGH);
+    digitalWrite(ledVermelho, LOW);
+    tone(buzzer, 1000, 100);
+  } else {
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledAmarelo, HIGH);
+    digitalWrite(ledVermelho, HIGH);
+    tone(buzzer, 1000, 50);
+  }
+
+  // Calcular raio de rotação do robô
+  float d = distancia / 100;
+  float R = d - b / 2 - 0.1;
+
+  // Converter theta para radianos
+  float thetaRad = radians(theta);
+  
+  // Calcular arco percorrido por cada roda (SL e SR)
+  float SL = (R + b / 2) * thetaRad;
+  float SR = (R - b / 2) * thetaRad;
+
+  // Calcular ângulo de cada roda (θL e θR)
+  float rr = 0.08;
+  float thetaL = SL / rr;
+  float thetaR = SR / rr;
+
+  // Calcular velocidade angular ω de cada motor (ω = Δθ / Δt)
+  float omegaL = thetaL / tempoTrajeto;
+  float omegaR = thetaR / tempoTrajeto;
+  Serial.print("Velocidade do motor esquerdo: ");
+  Serial.print(omegaL);
+  Serial.println(" rad/s");
+  Serial.print("Velocidade do motor direito: ");
+  Serial.print(omegaR);
+  Serial.println(" rad/s");
+
+  // Verificar se o movimento é possível e enviar velocidades angulares para os motores (converter rad/s para voltas/min)
+  if (d > b / 2 + 0.1) {
+    int velocidadeMotorEsquerdo = int(omegaL * (60 / (2 * PI)));
+    int velocidadeMotorDireito = int(omegaR * (60 / (2 * PI)));
+
+    // Enviar velocidades angulares para os motores
+    digitalWrite(motorEsquerdoPin1, HIGH);
+    digitalWrite(motorEsquerdoPin2, LOW);
+    analogWrite(motorEsquerdoPin1, velocidadeMotorEsquerdo);
+    digitalWrite(motorDireitoPin1, HIGH);
+    digitalWrite(motorDireitoPin2, LOW);
+    analogWrite(motorDireitoPin1, velocidadeMotorDireito);
+  } else {
+    // Imprimir mensagem e parar motores se o movimento não for possível
+    Serial.println("Não é possível executar o movimento");
+    digitalWrite(motorEsquerdoPin1, LOW);
+    digitalWrite(motorEsquerdoPin2, LOW);
+    digitalWrite(motorDireitoPin1, LOW);
+    digitalWrite(motorDireitoPin2, LOW);
+  }
+
+  // Aguardar antes da próxima leitura
+  delay(1000);
+}
