@@ -1,0 +1,86 @@
+// C++ code
+//
+// Definir pinos dos LEDs
+const int ledVerde = 3;
+const int ledAmarelo = 6;
+const int ledVermelho = 8;
+
+// Definir pino do buzzer
+const int buzzer = 2;
+
+// Definir pinos do sensor ultrassónico
+const int triggerPin = 13;
+const int echoPin = 12;
+
+void setup() {
+  // Iniciar comunicação
+  Serial.begin(9600);
+
+  // Definir pinos como saída
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledAmarelo, OUTPUT);
+  pinMode(ledVermelho, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+
+  // Definir pinos do sensor ultrassónico
+  pinMode(triggerPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+}
+
+void loop() {
+  // Obter distância
+  int distancia = medirDistancia();
+
+  // Mostrar distância no terminal
+  Serial.print("Distancia: ");
+  Serial.print(distancia);
+  Serial.println(" cm");
+
+  // Verificar distância e ajustar LEDs e buzzer
+  if (distancia >= 40 && distancia < 100) {
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledAmarelo, LOW);
+    digitalWrite(ledVermelho, LOW);
+    noTone(buzzer);
+  } else if (distancia >= 30 && distancia < 40) {
+    digitalWrite(ledVerde, HIGH);
+    digitalWrite(ledAmarelo, HIGH);
+    digitalWrite(ledVermelho, LOW);
+    tone(buzzer, 1000, 200);
+  } else if (distancia >= 20 && distancia < 30) {
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledAmarelo, HIGH);
+    digitalWrite(ledVermelho, LOW);
+    tone(buzzer, 1000, 100);
+  } else if (distancia >= 10 && distancia < 20) {
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledAmarelo, HIGH);
+    digitalWrite(ledVermelho, HIGH);
+    tone(buzzer, 1000, 50);
+  } else if (distancia < 10) {
+    digitalWrite(ledVerde, LOW);
+    digitalWrite(ledAmarelo, LOW);
+    digitalWrite(ledVermelho, HIGH);
+    tone(buzzer, 1000, 25);
+  }
+
+  // Aguardar 500 ms antes da próxima leitura
+  delay(500);
+}
+
+int medirDistancia() {
+  // Enviar pulso no pino trigger
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(triggerPin, LOW);
+
+  // Ler o tempo que o pulso leva para devolver ao pino echo
+  long duracao = pulseIn(echoPin, HIGH);
+
+  // Converter tempo em distância (em cm)
+  int distancia = duracao * 0.034 / 2;
+
+  return distancia;
+}
