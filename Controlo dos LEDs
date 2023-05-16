@@ -1,0 +1,95 @@
+// C++ code
+//
+// Definir pinos dos LEDs
+const int ledVerde = 6;
+const int ledAmarelo = 9;
+const int ledVermelho = 13;
+
+// Configuração inicial do Arduino
+void setup() {
+  // Definir pinos como saída
+  pinMode(ledVerde, OUTPUT);
+  pinMode(ledAmarelo, OUTPUT);
+  pinMode(ledVermelho, OUTPUT);
+}
+
+// Loop principal do Arduino
+void loop() {
+  // Executar as três funções em sequência
+  piscarSimultaneo();
+  piscarSerie();
+  acenderSerie();
+}
+
+// Função para piscar os 3 LEDs ao mesmo tempo
+void piscarSimultaneo() {
+  // Acender LEDs
+  digitalWrite(ledVerde, HIGH);
+  digitalWrite(ledAmarelo, HIGH);
+  digitalWrite(ledVermelho, HIGH);
+
+  // Esperar meio segundo
+  delay(500);
+
+  // Apagar LEDs
+  digitalWrite(ledVerde, LOW);
+  digitalWrite(ledAmarelo, LOW);
+  digitalWrite(ledVermelho, LOW);
+
+  // Esperar meio segundo
+  delay(500);
+}
+
+// Função para piscar os 3 LEDs em sequência
+void piscarSerie() {
+  // Acender LED verde e esperar
+  digitalWrite(ledVerde, HIGH);
+  delay(500);
+  digitalWrite(ledVerde, LOW);
+  delay(500);
+
+  // Acender LED amarelo e esperar
+  digitalWrite(ledAmarelo, HIGH);
+  delay(500);
+  digitalWrite(ledAmarelo, LOW);
+  delay(500);
+
+  // Acender LED vermelho e esperar
+  digitalWrite(ledVermelho, HIGH);
+  delay(500);
+  digitalWrite(ledVermelho, LOW);
+  delay(500);
+}
+
+// Função para acender os 3 LEDs em sequência, diminuindo a intensidade antes de apagar
+void acenderSerie() {
+  // Aumentar intensidade LED verde e diminuir
+  for (int i = 0; i < 255; i++) {
+    analogWrite(ledVerde, i);
+    delay(10);
+  }
+  for (int i = 255; i >= 0; i--) {
+    analogWrite(ledVerde, i);
+    delay(10);
+  }
+
+  // Aumentar intensidade LED amarelo e diminuir
+  for (int i = 0; i < 255; i++) {
+    analogWrite(ledAmarelo, i);
+    delay(10);
+  }
+  for (int i = 255; i >= 0; i--) {
+    analogWrite(ledAmarelo, i);
+    delay(10);
+  }
+
+  // Aumentar intensidade LED vermelho e diminuir
+  for (int i = 0; i < 255; i++) {
+    analogWrite(ledVermelho, i);
+    delay(10);
+  }
+  for (int i = 255; i >= 0; i--) {
+    analogWrite(ledVermelho, i);
+    delay(10);
+  }
+}
